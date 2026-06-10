@@ -59,7 +59,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-ide-muted dark:hover:text-ide-subtle"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-ide-muted dark:hover:text-ide-subtle cursor-pointer"
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -70,7 +70,7 @@ export default function LoginPage() {
             {/* Submit */}
             <button
               type="submit"
-              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-slate-800 hover:bg-slate-700 dark:bg-ide-active dark:hover:bg-ide-border text-white dark:text-ide-bright text-sm font-medium rounded-lg transition-colors mt-1"
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-slate-800 hover:bg-slate-700 dark:bg-ide-active dark:hover:bg-ide-border text-white dark:text-ide-bright text-sm font-medium rounded-lg transition-colors mt-1 cursor-pointer"
             >
               <LogIn size={16} />
               로그인
