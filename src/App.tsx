@@ -8,7 +8,7 @@ import DashboardPage from './pages/DashboardPage'
 function App() {
   return (
     <ThemeProvider>
-      <BrowserRouter>
+      <BrowserRouter basename="/autofocus-web-admin/">
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<LoginPage />} />
