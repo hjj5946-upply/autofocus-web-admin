@@ -28,6 +28,11 @@ body {
   word-break: keep-all;
 }
 
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
 /* ─── FullCalendar Overrides ─────────────────────────────────────────────── */
 .fc { font-family: 'Pretendard', sans-serif; }
 

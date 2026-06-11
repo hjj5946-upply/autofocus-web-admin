@@ -8,6 +8,7 @@ import DashboardPage from './pages/DashboardPage'
 import LoungePage from './pages/LoungePage'
 import AttendancePage from './pages/AttendancePage'
 import OrgChartPage from './pages/OrgChartPage'
+import DocumentsPage from './pages/DocumentsPage'
 import { Clock } from 'lucide-react'
 
 function ComingSoon({ title }: { title: string }) {
@@ -48,7 +49,7 @@ function AppRoutes() {
       <Route path="/lounge"     element={withLayout(<LoungePage />)} />
       <Route path="/attendance" element={withLayout(<AttendancePage />)} />
       <Route path="/org-chart"  element={withLayout(<OrgChartPage />)} />
-      <Route path="/documents"  element={withLayout(<ComingSoon title="문서 자료실" />)} />
+      <Route path="/documents"  element={withLayout(<DocumentsPage />)} />
       <Route path="/teams"      element={withLayout(<ComingSoon title="팀 관리" />)} />
       <Route path="/hr"         element={withLayout(<ComingSoon title="인사 관리" />)} />
       <Route path="/settings"   element={withLayout(<ComingSoon title="시스템 설정" />)} />
