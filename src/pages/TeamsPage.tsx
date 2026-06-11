@@ -243,8 +243,8 @@ function MoveMemberModal({ member, fromTeamId, teams, onMove, onClose }: {
 
 // ─── Team Detail Panel ────────────────────────────────────────────────────────
 
-function TeamDetail({ team, teams, onClose, onEditTeam, onDeleteTeam, onMoveMember, onRemoveMember, onSetHead }: {
-  team: Team; teams: Team[]; onClose: () => void; onEditTeam: () => void; onDeleteTeam: () => void
+function TeamDetail({ team, onClose, onEditTeam, onDeleteTeam, onMoveMember, onRemoveMember, onSetHead }: {
+  team: Team; onClose: () => void; onEditTeam: () => void; onDeleteTeam: () => void
   onMoveMember: (member: Member) => void; onRemoveMember: (memberId: string) => void; onSetHead: (memberId: string) => void
 }) {
   const [menuId, setMenuId]           = useState<string | null>(null)
@@ -537,7 +537,6 @@ export default function TeamsPage() {
           <div className="lg:sticky lg:top-4">
             <TeamDetail
               team={selectedTeam}
-              teams={teams}
               onClose={() => setSelectedId(null)}
               onEditTeam={() => setEditingTeam(selectedTeam)}
               onDeleteTeam={() => setConfirmDelete(selectedTeam.id)}
