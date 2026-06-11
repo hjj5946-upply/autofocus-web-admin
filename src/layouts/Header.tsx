@@ -1,5 +1,4 @@
 import { Menu, ChevronsRight } from 'lucide-react'
-import { useLocation } from 'react-router-dom'
 
 interface HeaderProps {
   onMobileMenuToggle: () => void
@@ -7,22 +6,10 @@ interface HeaderProps {
   onSidebarExpand?: () => void
 }
 
-const pageMeta: Record<string, { title: string; crumb: string[] }> = {
-  '/dashboard': { title: '대시보드',  crumb: ['대시보드'] },
-  '/contacts':  { title: '연락처',    crumb: ['연락처'] },
-  '/crm':       { title: 'CRM',       crumb: ['CRM'] },
-  '/projects':  { title: '프로젝트',  crumb: ['프로젝트'] },
-  '/employees': { title: '직원관리',  crumb: ['직원관리'] },
-  '/assets':    { title: '자산관리',  crumb: ['자산관리'] },
-}
-
 export default function Header({ onMobileMenuToggle, sidebarCollapsed, onSidebarExpand }: HeaderProps) {
-  const location = useLocation()
-  const meta = pageMeta[location.pathname] ?? { title: 'AutoFocus Admin', crumb: [] }
-
   return (
     <header className="h-14 border-b border-gray-200 dark:border-ide-border bg-white dark:bg-ide-base flex items-center justify-between px-4 flex-shrink-0 z-10">
-      {/* Left: expand button (collapsed only) + page title */}
+      {/* Left: expand button (collapsed only) + system name */}
       <div className="flex items-center gap-2">
         {sidebarCollapsed && (
           <button
@@ -33,16 +20,9 @@ export default function Header({ onMobileMenuToggle, sidebarCollapsed, onSidebar
             <ChevronsRight size={16} />
           </button>
         )}
-        <div>
-          {meta.crumb.length > 0 && (
-            <p className="text-[11px] text-gray-400 dark:text-ide-muted leading-none mb-0.5 tracking-wide">
-              AutoFocus Admin&nbsp;/&nbsp;{meta.crumb.join(' / ')}
-            </p>
-          )}
-          <h1 className="text-sm font-semibold text-gray-900 dark:text-ide-bright leading-none">
-            {meta.title}
-          </h1>
-        </div>
+        <h1 className="text-md font-semibold text-gray-900 dark:text-ide-bright leading-none">
+          AutoFocus Lounge
+        </h1>
       </div>
 
       {/* Right: user info + mobile toggle */}

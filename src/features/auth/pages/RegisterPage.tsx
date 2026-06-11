@@ -44,7 +44,7 @@ export default function RegisterPage() {
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-slate-800 text-white font-bold text-lg mb-3">
             AF
           </div>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-ide-bright">AutoFocus Admin</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-ide-bright">AutoFocus Lounge</h1>
           <p className="text-sm text-gray-500 dark:text-ide-subtle mt-1">관리자 계정을 만드세요</p>
         </div>
 
