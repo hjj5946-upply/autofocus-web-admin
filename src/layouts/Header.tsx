@@ -27,8 +27,12 @@ export default function Header({ onMobileMenuToggle, sidebarCollapsed, onSidebar
 
       {/* Right: user info + mobile toggle */}
       <div className="flex items-center gap-2">
-        <div className="w-7 h-7 rounded-full bg-slate-800 dark:bg-ide-active flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
-          관
+        <div className="relative flex-shrink-0">
+          <div className="w-7 h-7 rounded-full bg-slate-800 dark:bg-ide-active flex items-center justify-center text-white text-xs font-semibold">
+            관
+          </div>
+          {/* 알림 뱃지 */}
+          <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-white dark:border-ide-base" />
         </div>
         <div className="hidden sm:block leading-tight">
           <p className="text-sm font-medium text-gray-900 dark:text-ide-text">관리자</p>

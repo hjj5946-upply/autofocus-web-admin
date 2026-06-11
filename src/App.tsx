@@ -9,19 +9,10 @@ import LoungePage from './pages/LoungePage'
 import AttendancePage from './pages/AttendancePage'
 import OrgChartPage from './pages/OrgChartPage'
 import DocumentsPage from './pages/DocumentsPage'
-import { Clock } from 'lucide-react'
-
-function ComingSoon({ title }: { title: string }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-24 text-center">
-      <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-ide-hover flex items-center justify-center mb-4">
-        <Clock size={20} className="text-gray-400 dark:text-ide-muted" />
-      </div>
-      <p className="text-base font-semibold text-gray-600 dark:text-ide-text">{title}</p>
-      <p className="text-sm text-gray-400 dark:text-ide-muted mt-1">페이지 개발 중입니다.</p>
-    </div>
-  )
-}
+import TeamsPage from './pages/TeamsPage'
+import HRPage from './pages/HRPage'
+import CustomersPage from './pages/CustomersPage'
+import SettingsPage from './pages/SettingsPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth()
@@ -50,9 +41,10 @@ function AppRoutes() {
       <Route path="/attendance" element={withLayout(<AttendancePage />)} />
       <Route path="/org-chart"  element={withLayout(<OrgChartPage />)} />
       <Route path="/documents"  element={withLayout(<DocumentsPage />)} />
-      <Route path="/teams"      element={withLayout(<ComingSoon title="팀 관리" />)} />
-      <Route path="/hr"         element={withLayout(<ComingSoon title="인사 관리" />)} />
-      <Route path="/settings"   element={withLayout(<ComingSoon title="시스템 설정" />)} />
+      <Route path="/teams"      element={withLayout(<TeamsPage />)} />
+      <Route path="/hr"         element={withLayout(<HRPage />)} />
+      <Route path="/customers"  element={withLayout(<CustomersPage />)} />
+      <Route path="/settings"   element={withLayout(<SettingsPage />)} />
 
       <Route path="*" element={<Navigate to={isAuthenticated ? '/dashboard' : '/login'} replace />} />
     </Routes>

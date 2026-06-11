@@ -6,6 +6,7 @@ import {
   FolderOpen,
   UsersRound,
   UserCog,
+  Handshake,
   Settings,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -24,5 +25,6 @@ export const navItems: NavItem[] = [
   { icon: FolderOpen,      label: '문서 자료실', href: '/documents' },
   { icon: UsersRound,      label: '팀 관리',     href: '/teams' },
   { icon: UserCog,         label: '인사 관리',   href: '/hr' },
+  { icon: Handshake,       label: '고객 관리',   href: '/customers' },
   { icon: Settings,        label: '시스템 설정', href: '/settings' },
 ]

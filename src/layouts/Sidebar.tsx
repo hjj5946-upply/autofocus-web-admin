@@ -121,8 +121,8 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
           {/* Settings popover */}
           {settingsOpen && (
             <div
-              className={`absolute z-50 bottom-full mb-2 bg-white dark:bg-ide-surface border border-gray-200 dark:border-ide-border rounded-lg shadow-xl py-1 min-w-[200px] ${
-                collapsed ? 'left-full ml-2 bottom-0' : 'left-0 right-0'
+              className={`absolute z-50 bottom-full mb-2 bg-white dark:bg-ide-surface border border-gray-200 dark:border-ide-border rounded-lg shadow-xl py-1 ${
+                collapsed ? 'left-full ml-2 bottom-0 w-44' : 'left-0 right-0'
               }`}
             >
               <div className="px-3 pt-2 pb-1">
@@ -173,6 +173,10 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
                   <LogOut size={14} />
                   로그아웃
                 </button>
+              </div>
+
+              <div className="border-t border-gray-100 dark:border-ide-border mt-1 px-3 py-2">
+                <p className="text-[12px] font-mono text-gray-500 dark:text-ide-border text-right">v 1.0.0</p>
               </div>
             </div>
           )}
