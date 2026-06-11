@@ -270,7 +270,10 @@ export default function AttendancePage() {
       )
       gsap.fromTo('.attend-calendar',
         { opacity: 0, y: 24 },
-        { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out', delay: 0.4 }
+        {
+          opacity: 1, y: 0, duration: 0.6, ease: 'power2.out', delay: 0.4,
+          onComplete: () => gsap.set('.attend-calendar', { clearProps: 'transform' }),
+        }
       )
     }, rootRef)
     return () => ctx.revert()
@@ -452,6 +455,7 @@ export default function AttendancePage() {
               eventContent={renderEventContent}
               headerToolbar={{ left: 'prev,next today', center: 'title', right: '' }}
               height="auto"
+              fixedMirrorParent={document.body}
             />
           </div>
         </div>

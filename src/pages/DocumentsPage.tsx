@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useMemo } from 'react'
 import gsap from 'gsap'
 import {
   Search, Download, Eye, FileText, FileSpreadsheet, FileImage,
-  File, FolderOpen, X, ChevronDown, CheckCircle2,
+  File, FolderOpen, X, ChevronDown, CheckCircle2, Upload, Trash2,
 } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -27,7 +27,7 @@ interface DocItem {
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 
-const mockDocs: DocItem[] = [
+const INITIAL_DOCS: DocItem[] = [
   {
     id: 1, title: '취업규칙 (전문)', category: 'regulation', categoryLabel: '사규/규정',
     fileType: 'pdf', size: '1.2 MB', uploadedAt: '2026-01-15', uploader: '인사팀', uploaderDept: '인사팀',
@@ -128,7 +128,7 @@ const mockDocs: DocItem[] = [
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const CATEGORIES: { value: DocCategory; label: string; count?: number }[] = [
+const CATEGORIES: { value: DocCategory; label: string }[] = [
   { value: 'all',        label: '전체' },
   { value: 'regulation', label: '사규/규정' },
   { value: 'form',       label: '공통 양식' },
@@ -149,6 +149,24 @@ const FILE_TYPE_CONFIG: Record<FileType, { label: string; color: string; bg: str
   zip:  { label: 'ZIP',  color: 'text-gray-600 dark:text-gray-400',    bg: 'bg-gray-100 dark:bg-gray-800',     icon: <File size={14} /> },
 }
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function detectFileType(filename: string): FileType {
+  const ext = filename.split('.').pop()?.toLowerCase() ?? ''
+  const map: Record<string, FileType> = {
+    pdf: 'pdf', xlsx: 'xlsx', xls: 'xlsx', docx: 'docx', doc: 'docx',
+    hwp: 'hwp', pptx: 'pptx', ppt: 'pptx', jpg: 'jpg', jpeg: 'jpg',
+    png: 'png', zip: 'zip',
+  }
+  return map[ext] ?? 'pdf'
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function FileBadge({ type }: { type: FileType }) {
@@ -167,6 +185,296 @@ function CategoryBadge({ label }: { label: string }) {
       bg-slate-100 text-slate-600 dark:bg-ide-hover dark:text-ide-subtle">
       {label}
     </span>
+  )
+}
+
+// ─── Upload Modal ─────────────────────────────────────────────────────────────
+
+function UploadModal({ onClose, onUpload }: {
+  onClose: () => void
+  onUpload: (doc: DocItem) => void
+}) {
+  const [dragOver,    setDragOver]   = useState(false)
+  const [file,        setFile]       = useState<File | null>(null)
+  const [title,       setTitle]      = useState('')
+  const [category,    setCategory]   = useState<Exclude<DocCategory, 'all'>>('form')
+  const [dept,        setDept]       = useState('')
+  const [version,     setVersion]    = useState('v1.0')
+  const [description, setDescription] = useState('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [onClose])
+
+  function selectFile(f: File) {
+    setFile(f)
+    if (!title) setTitle(f.name.replace(/\.[^.]+$/, ''))
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault()
+    setDragOver(false)
+    const dropped = e.dataTransfer.files[0]
+    if (dropped) selectFile(dropped)
+  }
+
+  function handleSubmit() {
+    if (!file || !title.trim() || !dept.trim()) return
+    const ft = detectFileType(file.name)
+    const newDoc: DocItem = {
+      id: Date.now(),
+      title: title.trim(),
+      category,
+      categoryLabel: CATEGORIES.find(c => c.value === category)?.label ?? '',
+      fileType: ft,
+      size: formatFileSize(file.size),
+      uploadedAt: new Date().toISOString().split('T')[0],
+      uploader: dept.trim(),
+      uploaderDept: dept.trim(),
+      description: description.trim(),
+      version: version.trim() || 'v1.0',
+      downloads: 0,
+    }
+    onUpload(newDoc)
+    onClose()
+  }
+
+  const canSubmit = !!file && title.trim() && dept.trim()
+  const ft = file ? detectFileType(file.name) : null
+  const ftCfg = ft ? FILE_TYPE_CONFIG[ft] : null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <div
+        className="relative z-10 bg-white dark:bg-ide-surface border border-gray-200 dark:border-ide-border
+          rounded-xl shadow-2xl w-full max-w-lg"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-ide-border">
+          <div className="flex items-center gap-2">
+            <Upload size={15} className="text-slate-600 dark:text-ide-text" />
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-ide-bright">문서 업로드</h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-gray-400 dark:text-ide-muted
+              hover:bg-gray-100 dark:hover:bg-ide-hover hover:text-gray-600 dark:hover:text-ide-text transition-colors"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        <div className="p-5 space-y-4">
+          {/* Drop Zone */}
+          <div
+            onDragEnter={() => setDragOver(true)}
+            onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+            className={`relative rounded-lg border-2 border-dashed cursor-pointer transition-colors
+              flex flex-col items-center justify-center py-8 gap-2 select-none
+              ${dragOver
+                ? 'border-slate-400 bg-slate-50 dark:border-slate-500 dark:bg-ide-hover'
+                : file
+                  ? 'border-emerald-300 bg-emerald-50 dark:border-emerald-700 dark:bg-emerald-950/20'
+                  : 'border-gray-200 dark:border-ide-border hover:border-slate-300 dark:hover:border-slate-600 hover:bg-gray-50 dark:hover:bg-ide-hover'
+              }`}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              onChange={e => { const f = e.target.files?.[0]; if (f) selectFile(f) }}
+            />
+            {file && ftCfg ? (
+              <>
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${ftCfg.bg}`}>
+                  <span className={ftCfg.color}><FileText size={20} /></span>
+                </div>
+                <p className="text-sm font-medium text-gray-700 dark:text-ide-text">{file.name}</p>
+                <p className="text-xs text-gray-400 dark:text-ide-muted">{formatFileSize(file.size)}</p>
+                <p className="text-[11px] text-emerald-500 dark:text-emerald-400">클릭하여 다른 파일 선택</p>
+              </>
+            ) : (
+              <>
+                <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-ide-hover flex items-center justify-center">
+                  <Upload size={20} className="text-gray-400 dark:text-ide-muted" />
+                </div>
+                <p className="text-sm font-medium text-gray-600 dark:text-ide-text">
+                  파일을 여기에 드래그하거나 클릭하세요
+                </p>
+                <p className="text-xs text-gray-400 dark:text-ide-muted">
+                  PDF, DOCX, XLSX, HWP, PPTX, ZIP 등
+                </p>
+              </>
+            )}
+          </div>
+
+          {/* Form Fields */}
+          <div className="space-y-3">
+            <div className="grid grid-cols-[1fr_140px] gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 dark:text-ide-subtle mb-1">
+                  문서명 <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="문서 제목 입력"
+                  value={title}
+                  onChange={e => setTitle(e.target.value)}
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-ide-border
+                    bg-white dark:bg-ide-base text-gray-900 dark:text-ide-text
+                    placeholder-gray-400 dark:placeholder-ide-muted
+                    focus:outline-none focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 dark:text-ide-subtle mb-1">카테고리</label>
+                <select
+                  value={category}
+                  onChange={e => setCategory(e.target.value as Exclude<DocCategory, 'all'>)}
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-ide-border
+                    bg-white dark:bg-ide-base text-gray-900 dark:text-ide-text
+                    focus:outline-none focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600"
+                >
+                  {CATEGORIES.filter(c => c.value !== 'all').map(c => (
+                    <option key={c.value} value={c.value}>{c.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 dark:text-ide-subtle mb-1">
+                  등록 부서 <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="부서명 입력"
+                  value={dept}
+                  onChange={e => setDept(e.target.value)}
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-ide-border
+                    bg-white dark:bg-ide-base text-gray-900 dark:text-ide-text
+                    placeholder-gray-400 dark:placeholder-ide-muted
+                    focus:outline-none focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 dark:text-ide-subtle mb-1">버전</label>
+                <input
+                  type="text"
+                  placeholder="v1.0"
+                  value={version}
+                  onChange={e => setVersion(e.target.value)}
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-ide-border
+                    bg-white dark:bg-ide-base text-gray-900 dark:text-ide-text
+                    placeholder-gray-400 dark:placeholder-ide-muted
+                    focus:outline-none focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-500 dark:text-ide-subtle mb-1">설명</label>
+              <textarea
+                rows={2}
+                placeholder="문서 설명 (선택)"
+                value={description}
+                onChange={e => setDescription(e.target.value)}
+                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-ide-border
+                  bg-white dark:bg-ide-base text-gray-900 dark:text-ide-text
+                  placeholder-gray-400 dark:placeholder-ide-muted resize-none
+                  focus:outline-none focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-600"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-5 pb-5 flex justify-end gap-2">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm rounded-lg border border-gray-200 dark:border-ide-border
+              text-gray-600 dark:text-ide-text hover:bg-gray-50 dark:hover:bg-ide-hover transition-colors"
+          >
+            취소
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={!canSubmit}
+            className="px-4 py-2 text-sm rounded-lg bg-slate-800 dark:bg-ide-active
+              text-white dark:text-ide-bright hover:bg-slate-700 dark:hover:bg-slate-600
+              transition-colors flex items-center gap-1.5
+              disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Upload size={14} />
+            업로드
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Delete Confirm Modal ─────────────────────────────────────────────────────
+
+function DeleteConfirmModal({ doc, onClose, onConfirm }: {
+  doc: DocItem
+  onClose: () => void
+  onConfirm: () => void
+}) {
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [onClose])
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <div
+        className="relative z-10 bg-white dark:bg-ide-surface border border-gray-200 dark:border-ide-border
+          rounded-xl shadow-2xl w-full max-w-sm p-5"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-9 h-9 rounded-lg bg-red-50 dark:bg-red-950/40 flex items-center justify-center flex-shrink-0">
+            <Trash2 size={16} className="text-red-500" />
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-ide-bright">문서 삭제</h2>
+            <p className="text-xs text-gray-400 dark:text-ide-muted mt-0.5">삭제 후 복구할 수 없습니다</p>
+          </div>
+        </div>
+        <p className="text-sm text-gray-600 dark:text-ide-text mb-5">
+          <span className="font-medium text-gray-900 dark:text-ide-bright">{doc.title}</span>을(를) 삭제하시겠습니까?
+        </p>
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm rounded-lg border border-gray-200 dark:border-ide-border
+              text-gray-600 dark:text-ide-text hover:bg-gray-50 dark:hover:bg-ide-hover transition-colors"
+          >
+            취소
+          </button>
+          <button
+            onClick={() => { onConfirm(); onClose() }}
+            className="px-4 py-2 text-sm rounded-lg bg-red-500 hover:bg-red-600
+              text-white transition-colors flex items-center gap-1.5"
+          >
+            <Trash2 size={14} />
+            삭제
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -287,9 +595,9 @@ function PreviewModal({ doc, onClose, onDownload }: {
   )
 }
 
-// ─── Download Toast ───────────────────────────────────────────────────────────
+// ─── Toast ────────────────────────────────────────────────────────────────────
 
-function DownloadToast({ name, onDone }: { name: string; onDone: () => void }) {
+function Toast({ message, onDone }: { message: string; onDone: () => void }) {
   useEffect(() => {
     const t = setTimeout(onDone, 2500)
     return () => clearTimeout(t)
@@ -301,7 +609,7 @@ function DownloadToast({ name, onDone }: { name: string; onDone: () => void }) {
       rounded-xl shadow-2xl text-white dark:text-ide-bright text-sm
       animate-[fadeInUp_0.25s_ease-out]">
       <CheckCircle2 size={16} className="text-emerald-400 flex-shrink-0" />
-      <span className="max-w-xs truncate">{name} 다운로드 완료</span>
+      <span className="max-w-xs truncate">{message}</span>
     </div>
   )
 }
@@ -309,13 +617,17 @@ function DownloadToast({ name, onDone }: { name: string; onDone: () => void }) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function DocumentsPage() {
-  const pageRef           = useRef<HTMLDivElement>(null)
+  const pageRef = useRef<HTMLDivElement>(null)
+
+  const [docs,          setDocs]         = useState<DocItem[]>(INITIAL_DOCS)
   const [activeCategory, setActiveCategory] = useState<DocCategory>('all')
-  const [searchQuery,    setSearchQuery]    = useState('')
-  const [sortField,      setSortField]      = useState<'title' | 'uploadedAt' | 'downloads'>('uploadedAt')
-  const [sortDir,        setSortDir]        = useState<'asc' | 'desc'>('desc')
-  const [previewDoc,     setPreviewDoc]     = useState<DocItem | null>(null)
-  const [toastDoc,       setToastDoc]       = useState<DocItem | null>(null)
+  const [searchQuery,   setSearchQuery]  = useState('')
+  const [sortField,     setSortField]    = useState<'title' | 'uploadedAt' | 'downloads'>('uploadedAt')
+  const [sortDir,       setSortDir]      = useState<'asc' | 'desc'>('desc')
+  const [previewDoc,    setPreviewDoc]   = useState<DocItem | null>(null)
+  const [deleteDoc,     setDeleteDoc]    = useState<DocItem | null>(null)
+  const [showUpload,    setShowUpload]   = useState(false)
+  const [toast,         setToast]        = useState<string | null>(null)
 
   useEffect(() => {
     if (!pageRef.current) return
@@ -324,14 +636,14 @@ export default function DocumentsPage() {
 
   const categoryCounts = useMemo(() => {
     const counts: Partial<Record<DocCategory, number>> = {}
-    for (const doc of mockDocs) {
+    for (const doc of docs) {
       counts[doc.category] = (counts[doc.category] ?? 0) + 1
     }
     return counts
-  }, [])
+  }, [docs])
 
   const filtered = useMemo(() => {
-    let list = mockDocs
+    let list = docs
     if (activeCategory !== 'all') list = list.filter(d => d.category === activeCategory)
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase()
@@ -348,7 +660,7 @@ export default function DocumentsPage() {
       if (sortField === 'downloads')  cmp = a.downloads - b.downloads
       return sortDir === 'asc' ? cmp : -cmp
     })
-  }, [activeCategory, searchQuery, sortField, sortDir])
+  }, [docs, activeCategory, searchQuery, sortField, sortDir])
 
   function handleSort(field: typeof sortField) {
     if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
@@ -356,7 +668,17 @@ export default function DocumentsPage() {
   }
 
   function handleDownload(doc: DocItem) {
-    setToastDoc(doc)
+    setToast(`${doc.title} 다운로드 완료`)
+  }
+
+  function handleUpload(doc: DocItem) {
+    setDocs(prev => [doc, ...prev])
+    setToast(`${doc.title} 업로드 완료`)
+  }
+
+  function handleDelete(doc: DocItem) {
+    setDocs(prev => prev.filter(d => d.id !== doc.id))
+    setToast(`${doc.title} 삭제 완료`)
   }
 
   const SortIcon = ({ field }: { field: typeof sortField }) => {
@@ -384,8 +706,19 @@ export default function DocumentsPage() {
             </p>
           </div>
         </div>
-        <div className="text-xs text-gray-400 dark:text-ide-muted">
-          총 <span className="font-semibold text-gray-600 dark:text-ide-text">{mockDocs.length}</span>개 문서
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-gray-400 dark:text-ide-muted">
+            총 <span className="font-semibold text-gray-600 dark:text-ide-text">{docs.length}</span>개 문서
+          </span>
+          <button
+            onClick={() => setShowUpload(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg
+              bg-slate-800 dark:bg-ide-active text-white dark:text-ide-bright
+              hover:bg-slate-700 dark:hover:bg-slate-600 transition-colors"
+          >
+            <Upload size={13} />
+            문서 업로드
+          </button>
         </div>
       </div>
 
@@ -409,7 +742,7 @@ export default function DocumentsPage() {
         {/* Category Tabs */}
         <div className="flex items-center gap-1 overflow-x-auto flex-shrink-0">
           {CATEGORIES.map(cat => {
-            const count = cat.value === 'all' ? mockDocs.length : (categoryCounts[cat.value] ?? 0)
+            const count = cat.value === 'all' ? docs.length : (categoryCounts[cat.value] ?? 0)
             const active = activeCategory === cat.value
             return (
               <button
@@ -438,7 +771,7 @@ export default function DocumentsPage() {
       {/* Table */}
       <div className="bg-white dark:bg-ide-surface border border-gray-200 dark:border-ide-border rounded-xl overflow-hidden">
         {/* Table Header */}
-        <div className="grid grid-cols-[minmax(0,1fr)_100px_80px_120px_90px_100px]
+        <div className="grid grid-cols-[minmax(0,1fr)_100px_80px_120px_90px_120px]
           px-4 py-2.5 border-b border-gray-100 dark:border-ide-border
           bg-gray-50 dark:bg-ide-base text-[11px] font-semibold text-gray-400 dark:text-ide-muted uppercase tracking-wide">
           <button
@@ -475,7 +808,7 @@ export default function DocumentsPage() {
             {filtered.map(doc => (
               <li
                 key={doc.id}
-                className="grid grid-cols-[minmax(0,1fr)_100px_80px_120px_90px_100px]
+                className="grid grid-cols-[minmax(0,1fr)_100px_80px_120px_90px_120px]
                   px-4 py-3 items-center hover:bg-gray-50 dark:hover:bg-ide-hover transition-colors group"
               >
                 {/* Title */}
@@ -507,7 +840,7 @@ export default function DocumentsPage() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center justify-end gap-1.5">
+                <div className="flex items-center justify-end gap-1">
                   <button
                     onClick={() => setPreviewDoc(doc)}
                     title="열람"
@@ -526,6 +859,15 @@ export default function DocumentsPage() {
                   >
                     <Download size={15} />
                   </button>
+                  <button
+                    onClick={() => setDeleteDoc(doc)}
+                    title="삭제"
+                    className="p-1.5 rounded-md text-gray-400 dark:text-ide-muted
+                      hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-500 dark:hover:text-red-400
+                      transition-colors"
+                  >
+                    <Trash2 size={15} />
+                  </button>
                 </div>
               </li>
             ))}
@@ -542,6 +884,23 @@ export default function DocumentsPage() {
         )}
       </div>
 
+      {/* Upload Modal */}
+      {showUpload && (
+        <UploadModal
+          onClose={() => setShowUpload(false)}
+          onUpload={handleUpload}
+        />
+      )}
+
+      {/* Delete Confirm Modal */}
+      {deleteDoc && (
+        <DeleteConfirmModal
+          doc={deleteDoc}
+          onClose={() => setDeleteDoc(null)}
+          onConfirm={() => handleDelete(deleteDoc)}
+        />
+      )}
+
       {/* Preview Modal */}
       {previewDoc && (
         <PreviewModal
@@ -551,12 +910,9 @@ export default function DocumentsPage() {
         />
       )}
 
-      {/* Download Toast */}
-      {toastDoc && (
-        <DownloadToast
-          name={toastDoc.title}
-          onDone={() => setToastDoc(null)}
-        />
+      {/* Toast */}
+      {toast && (
+        <Toast message={toast} onDone={() => setToast(null)} />
       )}
     </div>
   )

@@ -12,6 +12,8 @@ import DocumentsPage from './pages/DocumentsPage'
 import TeamsPage from './pages/TeamsPage'
 import HRPage from './pages/HRPage'
 import CustomersPage from './pages/CustomersPage'
+import TasksPage from './pages/TasksPage'
+import ClientPortalPage from './pages/ClientPortalPage'
 import SettingsPage from './pages/SettingsPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -41,9 +43,11 @@ function AppRoutes() {
       <Route path="/attendance" element={withLayout(<AttendancePage />)} />
       <Route path="/org-chart"  element={withLayout(<OrgChartPage />)} />
       <Route path="/documents"  element={withLayout(<DocumentsPage />)} />
+      <Route path="/tasks"      element={withLayout(<TasksPage />)} />
       <Route path="/teams"      element={withLayout(<TeamsPage />)} />
       <Route path="/hr"         element={withLayout(<HRPage />)} />
-      <Route path="/customers"  element={withLayout(<CustomersPage />)} />
+      <Route path="/customers"      element={withLayout(<CustomersPage />)} />
+      <Route path="/client-portal" element={withLayout(<ClientPortalPage />)} />
       <Route path="/settings"   element={withLayout(<SettingsPage />)} />
 
       <Route path="*" element={<Navigate to={isAuthenticated ? '/dashboard' : '/login'} replace />} />

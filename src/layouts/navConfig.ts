@@ -7,6 +7,8 @@ import {
   UsersRound,
   UserCog,
   Handshake,
+  ClipboardList,
+  Headphones,
   Settings,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -23,8 +25,10 @@ export const navItems: NavItem[] = [
   { icon: CalendarClock,   label: '근태/휴가',   href: '/attendance' },
   { icon: Network,         label: '조직도',      href: '/org-chart' },
   { icon: FolderOpen,      label: '문서 자료실', href: '/documents' },
+  { icon: ClipboardList,  label: '작업 관리',   href: '/tasks' },
   { icon: UsersRound,      label: '팀 관리',     href: '/teams' },
   { icon: UserCog,         label: '인사 관리',   href: '/hr' },
   { icon: Handshake,       label: '고객 관리',   href: '/customers' },
+  { icon: Headphones,      label: '포털 관리',   href: '/client-portal' },
   { icon: Settings,        label: '시스템 설정', href: '/settings' },
 ]
