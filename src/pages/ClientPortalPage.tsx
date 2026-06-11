@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useMemo } from 'react'
 import gsap from 'gsap'
 import {
   Headphones, Search, MessageSquare, FileText, Info,
-  CheckCircle2, Clock, AlertCircle, Send, X,
+  CheckCircle2, Clock, Send,
   Phone, Mail, Building2, Calendar, UserCheck,
   ChevronDown, ChevronUp, Circle, MoreHorizontal,
   User, Tag,
